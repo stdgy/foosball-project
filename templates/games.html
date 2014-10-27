@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}
+    Games
+{% endblock %}
+{% block content %}
+    <div class="container">
+        <div class="page-header">
+            <h1>Games <small>List</small></h1>
+        </div>
+        <div class="row">
+            <div class="col-md-8 col-md-offset-2">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Games</h3>
+                    </div>
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Start Date</th>
+                                <th>Red Pts</th>
+                                <th>Blue Pts</th>
+                                <th>Status</th> 
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for game in games %}
+                            <tr>
+                                <td><a href="/games/{{game.game_id}}">{{game.game_id}}</a></td>
+                                <td>{{game.start_time}}</td>
+                                <td>{{game.red_score}}</td>
+                                <td>{{game.blue_score}}</td>
+                                {% if game.end_time == None %}
+                                <td>Ongoing</td>
+                                {% else %}
+                                <td>Ended</td>
+                                {% endif %}
+                            </tr> 
+                            {% endfor %}
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

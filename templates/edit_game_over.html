@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% block title %}
+    Game
+{% endblock %}
+{% block content %}
+    <div class="container">
+        <div class="page-header">
+            <h1>Game <small>Ended</h1>
+        </div>
+        <div class="row">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">At a Glance</h3>
+                </div>
+                <div class="panel-body">
+                    <div class="col-md-4">
+                        <div id="running_score_chart"></div>
+                    </div>
+                    <div class="col-md-4">
+                        <div id="points_by_position_chart"></div>
+                    </div>
+                    <div class="col-md-4">
+                        <div id="points_by_player_chart"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Breakdown</h3>
+                </div>
+                <div class="panel-body">
+                    Started: {{ game.start_time }}<br>
+                    Duration: {{ game.duration }}
+                </div>
+                <table class="table table-striped text-center">
+                    <thead>
+                        <tr>
+                            <th colspan="2" class="text-center">Red - {{ teams.red.score }} pts</th>
+                            <th></th>
+                            <th colspan="2" class="text-center">Blue - {{ teams.blue.score }} pts</th>
+                        </tr>
+                        <tr>
+                            <th class="text-center">Score</th>
+                            <th class="text-center">Name</th>
+                            <th class="text-center">Position</th>
+                            <th class="text-center">Name</th>
+                            <th class="text-center">Score</th>
+                        </tr>
+                    </thead>
+                    {% for position in positions %}
+                    <tr>
+                        <td>{{ position.red_score }}</td>
+                        <td>{{ position.red_name }}</td>
+                        <td>{{ position.position }}</td>
+                        <td>{{ position.blue_name }}</td>
+                        <td>{{ position.blue_score }}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+        <div class="row">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Score History</h3>
+                </div>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Time</th>
+                            <th>Team</th>
+                    </thead>
+                    <tbody>
+                        {% for score in scores %}
+                        <tr>
+                            <td>{{score.username}}</td>
+                            <td> {{score.time}}</td>
+                            <td>{{score.team_name}}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type="text/javascript">
+      google.load("visualization", "1", {packages:["corechart"]});
+      google.setOnLoadCallback(drawChart);
+      function drawChart() {
+        // Create running score line chart 
+        var data = new google.visualization.DataTable();
+        data.addColumn('date', 'Time');
+        data.addColumn('number', 'Red');
+        data.addColumn('number', 'Blue');
+        data.addRows([
+          {% for score in running_scores %}
+            [   new Date({{score.time}}*1000), 
+                {{score.red_score}}, 
+                {{score.blue_score}} ],
+          {% endfor %}
+        ]);
+
+        var options = {
+          title: 'Score',
+          vAxis: { ticks: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]},
+          colors: ['red', 'blue']
+        };
+
+        var chart = new google.visualization.LineChart(document.getElementById('running_score_chart'));
+
+        chart.draw(data, options);
+
+        // Create Pie chart showing score by position
+        data = new google.visualization.DataTable();
+        data.addColumn('string', 'Position');
+        data.addColumn('number', 'Score');
+        data.addRows([
+          {% for position in positions %}
+            ['{{ position.position }}', {{position.red_score + position.blue_score }}],
+          {% endfor %}
+        ]);
+
+        var options = {
+          title: 'Points by Position',
+          pieHole: 0.4
+        };
+
+        chart = new google.visualization.PieChart(document.getElementById('points_by_position_chart'));
+
+        chart.draw(data, options);
+
+        // Create Pie chart showing score by position
+        data = new google.visualization.DataTable();
+        data.addColumn('string', 'Name');
+        data.addColumn('number', 'Score');
+        data.addRows([
+          {% for user in scores_by_user %}
+            ['{{ user.username }}', {{ user.score }}],
+          {% endfor %}
+        ]);
+
+        var options = {
+          title: 'Points by User',
+          pieHole: 0.4
+        };
+
+        chart = new google.visualization.PieChart(document.getElementById('points_by_player_chart'));
+
+        chart.draw(data, options);
+      }
+    </script>
+{% endblock %}

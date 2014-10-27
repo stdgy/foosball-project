@@ -1,0 +1,53 @@
+RESTful Foosball Design Document
+--------------------------------
+
+Sections
+
+- Users
+    - Create
+        - Endpoint: POST /user
+        - Takes: username, first_name, last_name, birthday, location
+    - Query
+        - Endpoint: GET /users
+            - Retrieve a list of all the users (JSON)
+        - Endpoint: GET /users?user_id=&first_name=&last_name=&age=&location
+            - Search for users with specific parameters
+
+- Games
+    - Create
+        - Endpoint: POST /game
+        - Takes: List of players (user, team, spot)
+    - Query
+        -Endpoint: GET /game
+            - Retrieves a list of all games. A game is an object:
+                { 
+                    game_id: 
+                    start_time: 
+                    end_time: 
+                    teams: [
+                        {
+                            team_id:
+                            players: [
+                                {
+                                    player_id:
+                                    team_id:
+                                    first_name:
+                                    last_name:
+                                    age:
+                                    location:
+                                }
+                            ]
+                        }
+                    ],
+                    scores: [
+                        {
+                            player_id,
+                            score_id,
+                            time
+                        }
+                    ]
+                }
+
+- Scoring
+    - Create
+    - Query

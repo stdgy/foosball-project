@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}
+    Game
+{% endblock %}
+{% block content %}
+    <div class="container">
+        <div class="page-header">
+            <h1>Game <small>Ongoing</h1>
+        </div>
+        <div class="row">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Scores</h3>
+                </div>
+                <table class="table table-striped text-center">
+                    <thead>
+                        <tr>
+                            <th colspan="2" class="text-center">Red - {{ teams.red.score }} pts</th>
+                            <th class="text-center">
+                                <form action="/games/{{game.game_id}}/end" method="POST">
+                                    <button type="submit" class="btn btn-default btn-xs">End Game</button>
+                                </form>
+                            </th>
+                            <th colspan="2" class="text-center">Blue - {{ teams.blue.score }} pts</th>
+                        </tr>
+                        <tr>
+                            <th class="text-center">Score</th>
+                            <th class="text-center">Name</th>
+                            <th class="text-center">Position</th>
+                            <th class="text-center">Name</th>
+                            <th class="text-center">Score</th>
+                        </tr>
+                    </thead>
+                    {% for position in positions %}
+                    <tr>
+                        <td>
+                            <form action="/games/{{game.game_id}}/score" method="POST">
+                                <input type="hidden" name="player_id" value="{{ position.red_id }}">
+                                <button type="submit" class="btn btn-default btn-xs">
+                                    <span class="glyphicon glyphicon-plus"></span>
+                                </button> {{ position.red_score }}
+                            </form>
+                        </td>
+                        <td>{{ position.red_name }}</td>
+                        <td>{{ position.position }}</td>
+                        <td>{{ position.blue_name }}</td>
+                        <td>
+                            <form action="/games/{{game.game_id}}/score" method="POST">
+                                <input type="hidden" name="player_id" value="{{ position.blue_id }}">
+                                {{ position.blue_score }} <button type="submit" class="btn btn-default btn-xs">
+                                    <span class="glyphicon glyphicon-plus"></span>
+                                </button> 
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+        <div class="row">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Score History</h3>
+                </div>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Time</th>
+                            <th>Team</th>
+                    </thead>
+                    <tbody>
+                        {% for score in scores %}
+                        <tr>
+                            <td>{{score.username}}</td>
+                            <td> {{score.time}}</td>
+                            <td>{{score.team_name}}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block title %}
+    FoosTracker
+{% endblock %}
+{% block content %}
+    <div class="container">
+        <div class="page-header">
+            <h1>Home <small>Overview</small></h1>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Recent Games</h3>
+                    </div>
+                    <table class="table table-striped text-center">
+                        <thead>
+                            <tr>
+                                <th class="text-center">#</th>
+                                <th class="text-center">Start Time</th>
+                                <th class="text-center">Red Score</th>
+                                <th class="text-center">Blue Score</th>
+                            </tr>
+                        </thead>
+                        {% for game in games %}
+                        <tr>
+                            <td><a href="/games/{{game.game_id}}">{{ game.game_id }}</a></td> 
+                            <td>{{ game.start_time }}</td>
+                            <td>{{ game.red_score }}</td>
+                            <td>{{ game.blue_score }}</td>
+                        </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Players</h3>
+                    </div>
+                        <div class="table-responsive">
+                        <table class="table table-striped text-center">
+                            <thead>
+                                <tr>
+                                    <th class="text-center">Username</th>
+                                    <th class="text-center">PPG</th>
+                                    <th class="text-center">Total Points</th>
+                                    <th class="text-center">Total Games</th>
+                                </tr>
+                            </thead>
+                            {% for player in players_by_ppg %}
+                            <tr>
+                                <td><a href="/users/{{player.user_id}}">{{ player.username }}</a></td>
+                                <td>{{ player.ppg }}</td>
+                                <td>{{ player.total_score }}</td>
+                                <td>{{ player.total_games }}</td>
+                            </tr>
+                            {% endfor %}
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-8 col-md-offset-2">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Quick Stats</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div class="col-md-6">
+                            <div id="position_ppg_chart"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <div id="red_blue_chart"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type="text/javascript">
+      google.load("visualization", "1", {packages:["corechart"]});
+      google.setOnLoadCallback(drawChart);
+      function drawChart() {
+        // Create running score line chart 
+        var data = new google.visualization.DataTable();
+        data.addColumn('string', 'Position');
+        data.addColumn('number', 'Score');
+        data.addRows([
+            [ 'Goalie', {{points_by_position.goalie_points}} ],
+            [ 'Defender', {{points_by_position.defender_points}} ],
+            [ 'Center', {{points_by_position.center_points}} ],
+            [ 'Striker', {{points_by_position.striker_points}} ]
+        ]);
+
+        var options = {
+          title: 'Points by Position',
+          pieHole: 0.4
+        };
+
+        var chart = new google.visualization.PieChart(document.getElementById('position_ppg_chart'));
+
+        chart.draw(data, options);
+
+        // Create Pie chart showing score by position
+        data = new google.visualization.DataTable();
+        data.addColumn('string', 'Team');
+        data.addColumn('number', 'Wins');
+        data.addRows([
+            [ 'Red', {{red_blue_scores.red_wins}} ],
+            [ 'Blue', {{red_blue_scores.blue_wins }}]
+        ]);
+
+        var options = {
+          title: 'Total Team Wins',
+          pieHole: 0.4,
+          colors: ['red', 'blue']
+        };
+
+        chart = new google.visualization.PieChart(document.getElementById('red_blue_chart'));
+
+        chart.draw(data, options);
+      }
+    </script>
+{% endblock %}
