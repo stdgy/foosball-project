@@ -9,7 +9,7 @@ app = Flask(__name__)
 
 app.config.update(dict(
     DATABASE=os.path.join(app.root_path, 'test.db'),
-    DEBUG=False,
+    DEBUG=True,
     SECRET_KEY='Secret Key Here',
     USSERNAME='Danny',
     PASSWORD='ChangeForProduction'
@@ -546,6 +546,110 @@ def end_game(game_id):
 
     # Forward to edit screen 
     return redirect(url_for('edit_game', game_id=game_id))
+
+@app.route("/games/<int:game_id>/undo", methods=['POST'])
+def undo_game(game_id):
+    # Check that game isn't already over
+    db = get_db() 
+    cur = db.execute('''
+        select end_time
+        from games where game_id = ?''', (game_id,))
+    end_time = cur.fetchone()
+
+    # If not over, remove last point scored
+    if end_time is not None:
+        cur = db.execute('''
+            delete from scores 
+            where score_id = (
+                select score_id 
+                from scores 
+                where time = (
+                    select max(time) 
+                    from scores 
+                    where player_id in (
+                        select player_id 
+                        from players
+                        where game_id = ?)))''', (game_id,))
+        db.commit()
+
+    # Forward back to edit screen 
+    return redirect(url_for('edit_game', game_id=game_id))
+
+@app.route("/games/<int:game_id>/rematch", methods=['POST'])
+def rematch(game_id):
+    # Get players from given game 
+    db = get_db()
+    cur = db.execute('''
+        select players.*
+        from players, teams 
+        where players.game_id = ?
+          and players.team_id = teams.team_id 
+          and lower(teams.name) = 'red'
+        order by players.position''', (game_id,))
+    r_players = cur.fetchall()
+    new_positions_red = []
+    # Move r_players forward one position
+    for i in range(len(r_players)):
+        # Get next player
+        next = (i - 1) % len(r_players)
+        while r_players[i]['user_id'] == r_players[next]['user_id'] and i != next:
+            next = (next - 1) % len(r_players)
+        new_positions_red.append(next)
+
+    cur = db.execute('''
+        select players.*
+        from players, teams 
+        where players.game_id = ?
+          and players.team_id = teams.team_id 
+          and lower(teams.name) = 'blue'
+        order by players.position''', (game_id,))
+    b_players = cur.fetchall()
+    new_positions_blue = []
+    # Move b_players forward one position
+    for i in range(len(b_players)):
+        # Get next player
+        next = (i - 1) % len(b_players)
+        while b_players[i]['user_id'] == b_players[next]['user_id'] and i != next:
+            next = (next - 1) % len(b_players)
+        new_positions_blue.append(next)
+
+    # Insert new game
+    cur = db.execute('''
+        insert into games 
+        (start_time)
+        values 
+        ((select datetime('now')))''')
+    cur = db.execute('''
+        select max(game_id) game_id from games''')
+    new_game_id = cur.fetchone()['game_id']
+
+    # Insert teams for game 
+    cur = db.execute('''insert into teams (name) values ('Red')''')
+    cur = db.execute('''select max(team_id) team_id from teams''')
+    red_id = cur.fetchone()['team_id']
+
+    cur = db.execute('''insert into teams (name) values ('Blue')''')
+    cur = db.execute('''select max(team_id) team_id from teams''')
+    blue_id = cur.fetchone()['team_id']
+
+    # Insert players for game
+    currPosition = 1
+    for p in new_positions_red:
+        cur = db.execute('''insert into players (user_id, game_id, team_id, position)
+                values (?, ?, ?, ?)''', (r_players[p]["user_id"], 
+                    new_game_id, red_id, currPosition,))
+        currPosition += 1
+
+    currPosition = 1
+    for p in new_positions_blue:
+        cur = db.execute('''insert into players (user_id, game_id, team_id, position)
+                values (?, ?, ?, ?)''', (b_players[p]["user_id"], 
+                    new_game_id, blue_id, currPosition,))
+        currPosition += 1
+
+    db.commit()
+    # Forward back to edit screen 
+    return redirect(url_for('edit_game', game_id=new_game_id))
 
 @app.route("/static/<path:path>", methods=['GET'])
 def serve_static(path):

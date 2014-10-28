@@ -32,7 +32,10 @@
                 </div>
                 <div class="panel-body">
                     Started: {{ game.start_time }}<br>
-                    Duration: {{ game.duration }}
+                    Duration: {{ game.duration }}<br>
+                    <form action="/games/{{ game.game_id }}/rematch" method="POST">
+                        <button type="submit" class="btn btn-default btn-xs">Rematch</button>
+                    </form>
                 </div>
                 <table class="table table-striped text-center">
                     <thead>
